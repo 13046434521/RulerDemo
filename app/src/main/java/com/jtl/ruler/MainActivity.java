@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
-import com.google.ar.core.Session;
+import com.jtl.ruler.helper.FullScreenHelper;
 import com.jtl.ruler.helper.PermissionHelper;
 import com.jtl.ruler.helper.SessionHelper;
 import com.jtl.ruler.view.RgbGLSurface;
@@ -14,7 +14,8 @@ import com.jtl.ruler.view.RgbGLSurface;
  */
 public class MainActivity extends AppCompatActivity {
     private RgbGLSurface mRgbGLSurface;
-    private Session mSession;
+    private SessionCode mSessionCode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,14 +25,15 @@ public class MainActivity extends AppCompatActivity {
         initData();
     }
 
-    private void initView(){
+    private void initView() {
         mRgbGLSurface = findViewById(R.id.gl_main_rgb);
     }
 
-    private void initData(){
-        if (PermissionHelper.hasCameraPermission(this)){
-            mSession = SessionHelper.getInstance().initialize(this);
-        }else{
+    private void initData() {
+        if (PermissionHelper.hasCameraPermission(this)) {
+            mSessionCode = SessionHelper.getInstance().initialize(this);
+            Toast.makeText(this, mSessionCode.toInfo(), Toast.LENGTH_SHORT).show();
+        } else {
             PermissionHelper.requestCameraPermission(this);
         }
     }
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (mRgbGLSurface!=null){
+        if (mRgbGLSurface != null) {
             mRgbGLSurface.onResume();
             SessionHelper.getInstance().onResume();
         }
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (mRgbGLSurface!=null){
+        if (mRgbGLSurface != null) {
             mRgbGLSurface.onPause();
             SessionHelper.getInstance().onPause();
         }
@@ -59,6 +61,13 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         SessionHelper.getInstance().onClose();
     }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        FullScreenHelper.getInstance().setFullScreenOnWindowFocusChanged(this, hasFocus);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         if (!PermissionHelper.hasCameraPermission(this)) {
@@ -71,5 +80,4 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
     }
-
 }

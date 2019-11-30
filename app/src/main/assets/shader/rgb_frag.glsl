@@ -1,5 +1,7 @@
+#extension GL_OES_EGL_image_external : require
+
 precision mediump float;
-uniform sampler2D u_TextrueUnit;
+uniform samplerExternalOES u_TextrueUnit;
 varying vec2 v_TexCoord;
 
 void main() {

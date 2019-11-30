@@ -1,9 +1,8 @@
 package com.jtl.ruler.helper;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.RequiresPermission;
+import android.util.Log;
 
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Session;
@@ -13,6 +12,9 @@ import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
+import com.jtl.ruler.SessionCode;
+
+import static com.google.ar.core.ArCoreApk.InstallStatus.INSTALL_REQUESTED;
 
 /**
  * @author：TianLong
@@ -22,6 +24,10 @@ public class SessionHelper {
     private static final String TAG = SessionHelper.class.getSimpleName();
     private Session mSession;
     private boolean isInstallRequested = false;
+    private SessionCode code;
+
+    private SessionHelper() {
+    }
 
     public static SessionHelper getInstance() {
         return SessionHelperHolder.SESSION_HELPER;
@@ -32,45 +38,58 @@ public class SessionHelper {
     }
 
 
-    public Session initialize(Context context) {
+    public SessionCode initialize(Context context) {
         if (mSession == null) {
             try {
-                switch (ArCoreApk.getInstance().requestInstall((Activity) context, !isInstallRequested)) {
-                    case INSTALL_REQUESTED:
-                        isInstallRequested = true;
-                        return null;
-                    default:
-                        break;
+                ArCoreApk.InstallStatus installStatus = ArCoreApk.getInstance().requestInstall((Activity) context, !isInstallRequested);
+                if (installStatus == INSTALL_REQUESTED) {
+                    isInstallRequested = true;
+                    code = SessionCode.ArcoreRequestedInstalled;
+                } else {
+                    mSession = new Session(context);
+                    code = SessionCode.SessionOK;
                 }
-                mSession = new Session(context);
-            } catch (UnavailableDeviceNotCompatibleException | UnavailableUserDeclinedInstallationException
-                    | UnavailableArcoreNotInstalledException | UnavailableSdkTooOldException | UnavailableApkTooOldException e) {
-                e.printStackTrace();
-                return null;
+            } catch (UnavailableArcoreNotInstalledException e) {
+                code = SessionCode.ArcoreNotInstalled;
+            } catch (UnavailableApkTooOldException | UnavailableSdkTooOldException e) {
+                code = SessionCode.ApkOrSdkTooOld;
+            } catch (UnavailableDeviceNotCompatibleException e) {
+                code = SessionCode.DeviceNotCompatible;
+            } catch (UnavailableUserDeclinedInstallationException e) {
+                code = SessionCode.UserDeclinedInstallation;
             }
         }
-        return mSession;
+        Log.w(TAG, "Session.initialize:" + code.toNative() + ":" + code.toInfo());
+        return code;
     }
 
     public void onResume() {
         try {
             if (mSession != null) {
                 mSession.resume();
+                Log.w(TAG, "Session.resume()");
             }
         } catch (CameraNotAvailableException e) {
             e.printStackTrace();
+            Log.w(TAG, e.getMessage());
         }
     }
 
     public void onPause() {
         if (mSession != null) {
             mSession.pause();
+            Log.w(TAG, "Session.pause()");
         }
     }
 
     public void onClose() {
         if (mSession != null) {
             mSession.close();
+            Log.w(TAG, "Session.close()");
         }
+    }
+
+    public Session getSession() {
+        return mSession;
     }
 }
