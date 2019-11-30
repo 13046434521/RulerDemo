@@ -34,8 +34,8 @@ public class RgbRender {
 
     private FloatBuffer vertexCoords;
     private FloatBuffer textureCoords;
-    private static final int FLOAT_SIZE_BYTES = 4 ;
-    private static final int TEXTURE_SIZE = 4 * 2 ;
+    private static final int FLOAT_SIZE_BYTES = 4;
+    private static final int TEXTURE_SIZE = 4 * 2;
     private float width;
     private float height;
     private int textureId = -1;
@@ -49,22 +49,22 @@ public class RgbRender {
     private void initProgram(Context context) {
         mProgram = GLES20.glCreateProgram();
         int fragmentShader = ShaderHelper.loadGLShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
-        int vertexShader = ShaderHelper.loadGLShader(TAG,context,GLES20.GL_VERTEX_SHADER,VERTEX_SHADER);
+        int vertexShader = ShaderHelper.loadGLShader(TAG, context, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER);
 
         //关联Shader
-        GLES20.glAttachShader(mProgram,vertexShader);
-        GLES20.glAttachShader(mProgram,fragmentShader);
+        GLES20.glAttachShader(mProgram, vertexShader);
+        GLES20.glAttachShader(mProgram, fragmentShader);
 
         GLES20.glLinkProgram(mProgram);
         GLES20.glUseProgram(mProgram);
 
-        a_Position = GLES20.glGetAttribLocation(mProgram,"a_Position");
-        a_TexCoord = GLES20.glGetAttribLocation(mProgram,"a_TexCoord");
-        u_TextureUnit = GLES20.glGetUniformLocation(mProgram,"u_TextureCoord");
+        a_Position = GLES20.glGetAttribLocation(mProgram, "a_Position");
+        a_TexCoord = GLES20.glGetAttribLocation(mProgram, "a_TexCoord");
+        u_TextureUnit = GLES20.glGetUniformLocation(mProgram, "u_TextureCoord");
 
         //解绑Shader
-        GLES20.glDetachShader(mProgram,vertexShader);
-        GLES20.glDetachShader(mProgram,fragmentShader);
+        GLES20.glDetachShader(mProgram, vertexShader);
+        GLES20.glDetachShader(mProgram, fragmentShader);
         //删除Shader
         GLES20.glDeleteShader(vertexShader);
         GLES20.glDeleteShader(fragmentShader);

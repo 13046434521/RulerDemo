@@ -35,7 +35,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         init();
     }
 
-    private void init(){
+    private void init() {
         this.setPreserveEGLContextOnPause(true);
         this.setEGLContextClientVersion(2);
         this.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
@@ -47,7 +47,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        GLES20.glClearColor(0,0,0,0);
+        GLES20.glClearColor(0, 0, 0, 0);
 
         mRgbRender = new RgbRender();
         mRgbRender.createdGLThread(getContext());
@@ -55,13 +55,13 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        GLES20.glViewport(0,0,width,height);
+        GLES20.glViewport(0, 0, width, height);
         mDisplayRotationHelper.onSurfaceChanged(width, height);
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT|GLES20.GL_COLOR_BUFFER_BIT);
+        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
         try {
             Session session = SessionHelper.getInstance().getSession();
             if (session == null) {

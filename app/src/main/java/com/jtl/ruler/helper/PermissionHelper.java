@@ -34,6 +34,7 @@ public final class PermissionHelper {
 
     /**
      * 是否有相机权限
+     *
      * @param activity
      * @return
      */
@@ -44,6 +45,7 @@ public final class PermissionHelper {
 
     /**
      * 请求相机权限
+     *
      * @param activity
      */
     public static void requestCameraPermission(Activity activity) {
@@ -53,16 +55,18 @@ public final class PermissionHelper {
 
     /**
      * 是否有内存卡写入权限
+     *
      * @param activity
      * @return
      */
-    public static boolean hasStoragePermission(Activity activity){
-        return ContextCompat.checkSelfPermission(activity,STORAGE_PERMISSION)
-                ==PackageManager.PERMISSION_GRANTED;
+    public static boolean hasStoragePermission(Activity activity) {
+        return ContextCompat.checkSelfPermission(activity, STORAGE_PERMISSION)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
      * 请求内存卡写入权限
+     *
      * @param activity
      */
     public static void requestStoragePermission(Activity activity) {
@@ -73,27 +77,30 @@ public final class PermissionHelper {
 
     /**
      * 请求权限
+     *
      * @param activity
      * @param permissions 权限名称
      * @param requestcode 请求码
      */
-    public static void requestPermission(Activity activity,String [] permissions,int requestcode){
+    public static void requestPermission(Activity activity, String[] permissions, int requestcode) {
         ActivityCompat.requestPermissions(activity, permissions, requestcode);
     }
 
     /**
      * 是否有权限
+     *
      * @param activity
      * @param permission 权限名
      * @return
      */
-    public static boolean hasPermission(Activity activity,String permission){
-        return ContextCompat.checkSelfPermission(activity,permission)
-                ==PackageManager.PERMISSION_GRANTED;
+    public static boolean hasPermission(Activity activity, String permission) {
+        return ContextCompat.checkSelfPermission(activity, permission)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
      * 展示申请权限的解释
+     *
      * @param activity
      * @return
      */
