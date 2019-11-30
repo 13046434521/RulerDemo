@@ -5,6 +5,8 @@ import android.content.Context;
 import android.util.Log;
 
 import com.google.ar.core.ArCoreApk;
+import com.google.ar.core.CameraConfig;
+import com.google.ar.core.CameraConfigFilter;
 import com.google.ar.core.Session;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
@@ -13,6 +15,9 @@ import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
 import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.core.exceptions.UnavailableUserDeclinedInstallationException;
 import com.jtl.ruler.SessionCode;
+
+import java.util.EnumSet;
+import java.util.List;
 
 import static com.google.ar.core.ArCoreApk.InstallStatus.INSTALL_REQUESTED;
 
@@ -47,6 +52,7 @@ public class SessionHelper {
                     code = SessionCode.ArcoreRequestedInstalled;
                 } else {
                     mSession = new Session(context);
+                    mSession.setCameraConfig(getConfig());
                     code = SessionCode.SessionOK;
                 }
             } catch (UnavailableArcoreNotInstalledException e) {
@@ -91,5 +97,16 @@ public class SessionHelper {
 
     public Session getSession() {
         return mSession;
+    }
+
+    private CameraConfig getConfig() {
+        CameraConfigFilter filter = new CameraConfigFilter(mSession);
+        filter.setTargetFps(EnumSet.of(CameraConfig.TargetFps.TARGET_FPS_30));
+        filter.setDepthSensorUsage(EnumSet.of(CameraConfig.DepthSensorUsage.DO_NOT_USE));
+        List<CameraConfig> cameraConfigList = mSession.getSupportedCameraConfigs(filter);
+        for (CameraConfig cameraConfig : cameraConfigList) {
+            Log.w(TAG, cameraConfig.getCameraId() + "  " + cameraConfig.getImageSize().toString() + "  " + cameraConfig.getTextureSize().toString());
+        }
+        return cameraConfigList.get(0);
     }
 }

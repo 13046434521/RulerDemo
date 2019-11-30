@@ -13,8 +13,8 @@ public enum SessionCode {
     ArcoreNotInstalled(3, "ARCore尚未安装"),
     ArcoreRequestedInstalled(4, "请求安装ARCore"),
     UserDeclinedInstallation(5, "用户拒绝安装ARCore");
-    private int mValue = 0;
-    private String mInfo = "";
+    private int mValue;
+    private String mInfo;
 
     SessionCode(int value, String info) {
         this.mValue = value;
