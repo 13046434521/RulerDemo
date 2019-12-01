@@ -15,4 +15,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
+    <ImageView
+        android:id="@+id/iv_main_hit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.9"
+        android:src="@mipmap/ic_launcher"
+        android:scaleType="center" />
+
 </android.support.constraint.ConstraintLayout>

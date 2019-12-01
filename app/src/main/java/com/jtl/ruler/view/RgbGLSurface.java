@@ -5,13 +5,24 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 
+import com.google.ar.core.Anchor;
+import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
+import com.google.ar.core.HitResult;
+import com.google.ar.core.Point;
 import com.google.ar.core.Session;
+import com.google.ar.core.Trackable;
+import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.jtl.ruler.helper.DisplayRotationHelper;
 import com.jtl.ruler.helper.SessionHelper;
+import com.jtl.ruler.helper.TabHelper;
 import com.jtl.ruler.render.RgbRender;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -23,9 +34,10 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Renderer {
     private static final String TAG = RgbGLSurface.class.getSimpleName();
-    private RgbRender mRgbRender;
     private DisplayRotationHelper mDisplayRotationHelper;
-
+    private RgbRender mRgbRender;
+    private volatile Frame mFrame;
+    private volatile List<Anchor> mAnchorList;
     public RgbGLSurface(Context context) {
         this(context, null);
     }
@@ -42,6 +54,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         this.setRenderer(this);
         this.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
+        mAnchorList = new ArrayList<>(16);
         mDisplayRotationHelper = new DisplayRotationHelper(getContext());
     }
 
@@ -68,11 +81,18 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
                 Log.w(TAG, "Session == null");
                 return;
             }
-
             mDisplayRotationHelper.updateSessionIfNeeded(session);
             session.setCameraTextureName(mRgbRender.getTextureId());
-            Frame frame = session.update();
-            mRgbRender.onDraw(frame);
+
+            mFrame = session.update();
+            mRgbRender.onDraw(mFrame);
+
+
+            Camera camera = mFrame.getCamera();
+            hitTest(mFrame, camera);
+
+
+
         } catch (CameraNotAvailableException e) {
             e.printStackTrace();
         }
@@ -88,5 +108,31 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
     public void onPause() {
         super.onPause();
         mDisplayRotationHelper.onPause();
+    }
+
+    public Frame getFrame() {
+        return mFrame;
+    }
+
+
+    public void hitTest(Frame frame, Camera camera) {
+        MotionEvent motionEvent = TabHelper.getInstance().poll();
+        Log.w(TAG, camera.getTrackingState().name() + "000000");
+        if (motionEvent != null && camera.getTrackingState() == TrackingState.TRACKING) {
+            Log.w(TAG, camera.getTrackingState().name() + "111111");
+            for (HitResult hit : frame.hitTest(motionEvent)) {
+                Trackable trackable = hit.getTrackable();
+                Log.w(TAG, camera.getTrackingState().name() + "222222");
+                if ((trackable instanceof Point && ((Point) trackable).getOrientationMode() == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
+                    if (mAnchorList.size() >= 20) {
+                        mAnchorList.get(0).detach();
+                        mAnchorList.remove(0);
+                    }
+                    mAnchorList.add(hit.createAnchor());
+                    Log.w(TAG, camera.getTrackingState().name() + "333333");
+                    break;
+                }
+            }
+        }
     }
 }
