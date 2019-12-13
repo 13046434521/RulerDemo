@@ -46,8 +46,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (PermissionHelper.hasCameraPermission(this)) {
             mPoint = ScreenHelper.getInstance().getScreenPoint(this);
             mMotionEvent = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, mPoint.x / 2f, mPoint.y / 2f, 0);
-
             mSessionCode = SessionHelper.getInstance().initialize(this);
+            TabHelper.getInstance().setDefaultMotionEvent(mMotionEvent);
             Toast.makeText(this, mSessionCode.toInfo(), Toast.LENGTH_SHORT).show();
         } else {
             PermissionHelper.requestCameraPermission(this);

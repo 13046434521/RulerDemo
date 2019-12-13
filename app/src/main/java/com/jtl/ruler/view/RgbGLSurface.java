@@ -11,6 +11,7 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
+import com.google.ar.core.Plane;
 import com.google.ar.core.Point;
 import com.google.ar.core.Session;
 import com.google.ar.core.Trackable;
@@ -19,6 +20,7 @@ import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.jtl.ruler.helper.DisplayRotationHelper;
 import com.jtl.ruler.helper.SessionHelper;
 import com.jtl.ruler.helper.TabHelper;
+import com.jtl.ruler.render.PictureCircleRender;
 import com.jtl.ruler.render.RgbRender;
 
 import java.util.ArrayList;
@@ -34,8 +36,12 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Renderer {
     private static final String TAG = RgbGLSurface.class.getSimpleName();
+
     private DisplayRotationHelper mDisplayRotationHelper;
     private RgbRender mRgbRender;
+    private PictureCircleRender mPictureCircleRender;
+
+
     private volatile Frame mFrame;
     private volatile List<Anchor> mAnchorList;
     public RgbGLSurface(Context context) {
@@ -64,6 +70,9 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
         mRgbRender = new RgbRender();
         mRgbRender.createdGLThread(getContext());
+
+        mPictureCircleRender = new PictureCircleRender();
+        mPictureCircleRender.createdGLThread(getContext());
     }
 
     @Override
@@ -86,13 +95,17 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
             mFrame = session.update();
             mRgbRender.onDraw(mFrame);
-
+            mPictureCircleRender.onDraw();
 
             Camera camera = mFrame.getCamera();
-            hitTest(mFrame, camera);
+            Anchor anchor = hitTest(mFrame, camera);
+            if (anchor == null) {
+                Log.w(TAG, "anchor == null");
+                return;
+            }
 
-
-
+            mPictureCircleRender.upData(anchor, camera);
+            mPictureCircleRender.onDraw();
         } catch (CameraNotAvailableException e) {
             e.printStackTrace();
         }
@@ -115,24 +128,34 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
     }
 
 
-    public void hitTest(Frame frame, Camera camera) {
-        MotionEvent motionEvent = TabHelper.getInstance().poll();
-        Log.w(TAG, camera.getTrackingState().name() + "000000");
+    /**
+     * HitTest
+     *
+     * @param frame
+     * @param camera
+     * @return
+     */
+    public Anchor hitTest(Frame frame, Camera camera) {
+        MotionEvent motionEvent = TabHelper.getInstance().getDefaultMotionEvent();
+        Anchor anchor = null;
         if (motionEvent != null && camera.getTrackingState() == TrackingState.TRACKING) {
-            Log.w(TAG, camera.getTrackingState().name() + "111111");
             for (HitResult hit : frame.hitTest(motionEvent)) {
                 Trackable trackable = hit.getTrackable();
-                Log.w(TAG, camera.getTrackingState().name() + "222222");
-                if ((trackable instanceof Point && ((Point) trackable).getOrientationMode() == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
-                    if (mAnchorList.size() >= 20) {
-                        mAnchorList.get(0).detach();
-                        mAnchorList.remove(0);
-                    }
-                    mAnchorList.add(hit.createAnchor());
-                    Log.w(TAG, camera.getTrackingState().name() + "333333");
-                    break;
+                if ((trackable instanceof Plane
+                        && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
+                        || (trackable instanceof Point
+                        && ((Point) trackable).getOrientationMode()
+                        == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
+//                    if (mAnchorList.size() >= 20) {
+//                        mAnchorList.get(0).detach();
+//                        mAnchorList.remove(0);
+//                    }
+                    anchor = hit.createAnchor();
+//                    mAnchorList.add(anchor);
                 }
             }
         }
+
+        return anchor;
     }
 }

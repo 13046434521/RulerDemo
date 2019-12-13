@@ -91,6 +91,7 @@ public class SessionHelper {
     public void onClose() {
         if (mSession != null) {
             mSession.close();
+            mSession = null;//mSession 若不设为null  GC不回收
             Log.w(TAG, "Session.close()");
         }
     }

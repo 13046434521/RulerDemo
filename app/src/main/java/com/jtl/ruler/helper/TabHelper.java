@@ -10,7 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class TabHelper {
     private LinkedBlockingQueue<MotionEvent> mLinkedBlockingQueue;
-
+    private MotionEvent mMotionEvent;
     private TabHelper() {
         mLinkedBlockingQueue = new LinkedBlockingQueue<>(16);
     }
@@ -21,6 +21,14 @@ public class TabHelper {
 
     private static class TabHelperHolder {
         private static final TabHelper TAB_HELPER = new TabHelper();
+    }
+
+    public MotionEvent getDefaultMotionEvent() {
+        return mMotionEvent;
+    }
+
+    public void setDefaultMotionEvent(MotionEvent motionEvent) {
+        mMotionEvent = motionEvent;
     }
 
     public MotionEvent poll() {
