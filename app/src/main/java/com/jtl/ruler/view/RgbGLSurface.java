@@ -95,7 +95,6 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
             mFrame = session.update();
             mRgbRender.onDraw(mFrame);
-            mPictureCircleRender.onDraw();
 
             Camera camera = mFrame.getCamera();
             Anchor anchor = hitTest(mFrame, camera);
@@ -122,11 +121,6 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         super.onPause();
         mDisplayRotationHelper.onPause();
     }
-
-    public Frame getFrame() {
-        return mFrame;
-    }
-
 
     /**
      * HitTest

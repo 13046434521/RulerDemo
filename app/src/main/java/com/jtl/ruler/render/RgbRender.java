@@ -35,7 +35,6 @@ public class RgbRender {
     private FloatBuffer vertexCoords;
     private FloatBuffer textureCoords;
     private static final int FLOAT_SIZE_BYTES = 4;
-    private static final int TEXTURE_SIZE = 4 * 2;
     private float width;
     private float height;
     private int textureId = -1;
@@ -60,7 +59,7 @@ public class RgbRender {
 
         a_Position = GLES20.glGetAttribLocation(mProgram, "a_Position");
         a_TexCoord = GLES20.glGetAttribLocation(mProgram, "a_TexCoord");
-        u_TextureUnit = GLES20.glGetUniformLocation(mProgram, "u_TextureCoord");
+        u_TextureUnit = GLES20.glGetUniformLocation(mProgram, "u_TextureUnit");
 
         //解绑Shader
         GLES20.glDetachShader(mProgram, vertexShader);
@@ -77,7 +76,6 @@ public class RgbRender {
         vertexBuffer.order(ByteOrder.nativeOrder());
         vertexCoords = vertexBuffer.asFloatBuffer();
         vertexCoords.put(QUAD_COORDS).position(0);
-
 
         ByteBuffer textureBuffer = ByteBuffer.allocateDirect(8 * FLOAT_SIZE_BYTES);
         textureBuffer.order(ByteOrder.nativeOrder());
@@ -127,7 +125,7 @@ public class RgbRender {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glUseProgram(mProgram);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
-        GLES20.glUniform1i(u_TextureUnit, 1);
+        GLES20.glUniform1i(u_TextureUnit, 0);
 
         GLES20.glEnableVertexAttribArray(a_Position);
         GLES20.glEnableVertexAttribArray(a_TexCoord);
@@ -140,6 +138,8 @@ public class RgbRender {
         GLES20.glDisableVertexAttribArray(a_Position);
         GLES20.glDisableVertexAttribArray(a_TexCoord);
 
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
+        GLES20.glUseProgram(0);
         ShaderHelper.checkGLError("onDraw");
     }
 }
