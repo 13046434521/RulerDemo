@@ -44,6 +44,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
     private volatile Frame mFrame;
     private volatile List<Anchor> mAnchorList;
+
     public RgbGLSurface(Context context) {
         this(context, null);
     }
@@ -131,21 +132,26 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
      */
     public Anchor hitTest(Frame frame, Camera camera) {
         MotionEvent motionEvent = TabHelper.getInstance().getDefaultMotionEvent();
+        MotionEvent motionClick = TabHelper.getInstance().poll();
         Anchor anchor = null;
-        if (motionEvent != null && camera.getTrackingState() == TrackingState.TRACKING) {
+        if (camera.getTrackingState() == TrackingState.TRACKING) {
             for (HitResult hit : frame.hitTest(motionEvent)) {
                 Trackable trackable = hit.getTrackable();
-                if ((trackable instanceof Plane
+                boolean isTrackable = (trackable instanceof Plane
                         && ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))
                         || (trackable instanceof Point
                         && ((Point) trackable).getOrientationMode()
-                        == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL)) {
-//                    if (mAnchorList.size() >= 20) {
-//                        mAnchorList.get(0).detach();
-//                        mAnchorList.remove(0);
-//                    }
+                        == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL);
+                if (isTrackable) {
                     anchor = hit.createAnchor();
-//                    mAnchorList.add(anchor);
+
+                    if (motionClick != null) {
+                        if (mAnchorList.size() >= 20) {
+                            mAnchorList.get(0).detach();
+                            mAnchorList.remove(0);
+                        }
+                        mAnchorList.add(anchor);
+                    }
                 }
             }
         }
