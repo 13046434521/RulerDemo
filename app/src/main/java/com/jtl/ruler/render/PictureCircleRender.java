@@ -134,7 +134,7 @@ public class PictureCircleRender {
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 
-        //这句话是数据拷贝，从CPU拷贝纸GPU内存中，耗时1-11毫秒不等。
+        //这句话是数据拷贝，从CPU拷贝纸GPU显存中，耗时1-11毫秒不等。
         // 因此渲染一张固定图片时不建议把它放在onDrawFrame当中。除非数据一直在变
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mBitmapWidth, mBitmapHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mBitmapBuffer);
         ShaderHelper.checkGLError("initTexture");

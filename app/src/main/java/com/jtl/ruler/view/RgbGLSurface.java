@@ -22,6 +22,7 @@ import com.jtl.ruler.helper.SessionHelper;
 import com.jtl.ruler.helper.TabHelper;
 import com.jtl.ruler.render.PictureCircleRender;
 import com.jtl.ruler.render.RgbRender;
+import com.jtl.ruler.render.RulerRender;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
     private DisplayRotationHelper mDisplayRotationHelper;
     private RgbRender mRgbRender;
+    private RulerRender mRulerRender;
     private PictureCircleRender mPictureCircleRender;
 
 
@@ -74,6 +76,9 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
         mPictureCircleRender = new PictureCircleRender();
         mPictureCircleRender.createdGLThread(getContext());
+
+        mRulerRender = new RulerRender();
+        mRulerRender.createdGLThread(getContext());
     }
 
     @Override
@@ -82,6 +87,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         mDisplayRotationHelper.onSurfaceChanged(width, height);
     }
 
+    private Anchor anchor;
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
@@ -99,13 +105,19 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
             Camera camera = mFrame.getCamera();
             Anchor anchor = hitTest(mFrame, camera);
-            if (anchor == null) {
-                Log.w(TAG, "anchor == null");
-                return;
+
+            if (!mAnchorList.isEmpty()){
+                mRulerRender.upData(mAnchorList,camera);
+                mRulerRender.onDraw();
+                Log.w(TAG,mAnchorList.size()+"个Anchor");
             }
 
-            mPictureCircleRender.upData(anchor, camera);
-            mPictureCircleRender.onDraw();
+            if (anchor != null) {
+                mPictureCircleRender.upData(anchor, camera);
+                mPictureCircleRender.onDraw();
+            }
+
+
         } catch (CameraNotAvailableException e) {
             e.printStackTrace();
         }
