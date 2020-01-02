@@ -2,6 +2,7 @@ package com.jtl.ruler;
 
 
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -122,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public boolean longClick() {
-        if (System.currentTimeMillis() - time > 1000) {
+        if (System.currentTimeMillis() - time >= 1000) {
             time = System.currentTimeMillis();
             return true;
         }

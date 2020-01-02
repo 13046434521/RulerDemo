@@ -3,6 +3,7 @@ package com.jtl.ruler.view;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -50,7 +51,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
     private volatile Frame mFrame;
     private volatile List<Anchor> mAnchorList;
-
+    private Vibrator vibrator;
     public RgbGLSurface(Context context) {
         this(context, null);
     }
@@ -70,6 +71,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         mAnchorList = new ArrayList<>(16);
         mDisplayRotationHelper = new DisplayRotationHelper(getContext());
         mReentrantLock = new ReentrantLock();
+        vibrator = (Vibrator)getContext().getSystemService(getContext().VIBRATOR_SERVICE);
     }
 
     @Override
@@ -176,6 +178,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
                             mAnchorList.remove(0);
                         }
                         mAnchorList.add(anchor);
+                        vibrator.vibrate(50);
                     }
                 }
             }
@@ -189,6 +192,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         try {
             if (mAnchorList.size() != 0 && index > 0 && index < mAnchorList.size()) {
                 mAnchorList.remove(index);
+                vibrator.vibrate(50);
             } else {
                 this.post(new Runnable() {
                     @Override
@@ -203,20 +207,6 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
     }
 
     public void removeLastAnchorList() {
-        mReentrantLock.lock();
-        try {
-            if (mAnchorList.size() > 0) {
-                mAnchorList.remove(mAnchorList.size() - 1);
-            } else {
-                this.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getContext(), "Anchors个数为：" + mAnchorList.size(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        } finally {
-            mReentrantLock.unlock();
-        }
+        removeAnchorList(mAnchorList.size() - 1);
     }
 }
