@@ -52,6 +52,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
     private volatile Frame mFrame;
     private volatile List<Anchor> mAnchorList;
     private Vibrator vibrator;
+
     public RgbGLSurface(Context context) {
         this(context, null);
     }
@@ -71,7 +72,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         mAnchorList = new ArrayList<>(16);
         mDisplayRotationHelper = new DisplayRotationHelper(getContext());
         mReentrantLock = new ReentrantLock();
-        vibrator = (Vibrator)getContext().getSystemService(getContext().VIBRATOR_SERVICE);
+        vibrator = (Vibrator) getContext().getSystemService(getContext().VIBRATOR_SERVICE);
     }
 
     @Override
@@ -121,7 +122,12 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
                 mPointRender.upData(mAnchorList, camera);
                 mPointRender.onDraw();
 
-                mLineRender.upData(mAnchorList, camera);
+                if (mAnchorList.size() % 2 == 0) {
+                    mLineRender.upData(mAnchorList, camera);
+                } else {
+                    mLineRender.upData(mAnchorList, anchor, camera);
+                }
+//                mLineRender.upData(mAnchorList, camera);
                 mLineRender.onDraw();
                 Log.w(TAG, mAnchorList.size() + "个Anchor");
             }
@@ -190,7 +196,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
     public void removeAnchorList(int index) {
         mReentrantLock.lock();
         try {
-            if (mAnchorList.size() != 0 && index > 0 && index < mAnchorList.size()) {
+            if (mAnchorList.size() != 0 && index >= 0 && index < mAnchorList.size()) {
                 mAnchorList.remove(index);
                 vibrator.vibrate(50);
             } else {

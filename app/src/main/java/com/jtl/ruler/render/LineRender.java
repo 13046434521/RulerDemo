@@ -3,7 +3,8 @@ package com.jtl.ruler.render;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
@@ -33,6 +34,7 @@ public class LineRender {
     private float[] mvp_Matrix;
     private float[] point_Color;
     private FloatBuffer mVertexCoord;
+    private float[] positions;
 
     public void createdGLThread(Context context) {
         initProgram(context);
@@ -89,14 +91,33 @@ public class LineRender {
 
     private volatile int pointCount = 0;
 
-    public void upData(@Nullable List<Anchor> anchors, @Nullable Camera camera) {
-        float[] positions = new float[3 * anchors.size()];
-        pointCount = anchors.size();
-        for (int i = 0; i < anchors.size(); i++) {
-            positions[i * 3 + 0] = anchors.get(i).getPose().tx();
-            positions[i * 3 + 1] = anchors.get(i).getPose().ty();
-            positions[i * 3 + 2] = anchors.get(i).getPose().tz();
+    public void upData(@NonNull List<Anchor> anchors, @NonNull Camera camera) {
+        upData(anchors, null, camera);
+    }
+
+    public void upData(@NonNull List<Anchor> anchors, @NonNull Anchor anchor, @NonNull Camera camera) {
+        if (anchor != null) {
+            positions = new float[3 * anchors.size() + 3];
+            pointCount = anchors.size() + 1;
+            for (int i = 0; i < anchors.size(); i++) {
+                positions[i * 3 + 0] = anchors.get(i).getPose().tx();
+                positions[i * 3 + 1] = anchors.get(i).getPose().ty();
+                positions[i * 3 + 2] = anchors.get(i).getPose().tz();
+            }
+            positions[anchors.size() * 3 + 0] = anchor.getPose().tx();
+            positions[anchors.size() * 3 + 1] = anchor.getPose().ty();
+            positions[anchors.size() * 3 + 2] = anchor.getPose().tz();
+        } else {
+            positions = new float[3 * anchors.size()];
+            pointCount = anchors.size();
+            for (int i = 0; i < anchors.size(); i++) {
+                positions[i * 3 + 0] = anchors.get(i).getPose().tx();
+                positions[i * 3 + 1] = anchors.get(i).getPose().ty();
+                positions[i * 3 + 2] = anchors.get(i).getPose().tz();
+            }
         }
+
+
         ByteBuffer vertexBuffer = ByteBuffer.allocateDirect(positions.length * FLOAT_SIZE_BYTES);
         mVertexCoord = vertexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer();
         mVertexCoord.put(positions).position(0);
@@ -111,6 +132,7 @@ public class LineRender {
 
         //MVP矩阵   乘法顺序为：P * V * M
         Matrix.multiplyMM(mvp_Matrix, 0, projectMatrix, 0, viewMatrix, 0);
+
     }
 
     public void onDraw() {
@@ -123,6 +145,8 @@ public class LineRender {
         GLES20.glEnableVertexAttribArray(a_Position);
         GLES20.glVertexAttribPointer(a_Position, 3, GLES20.GL_FLOAT, false, 0, mVertexCoord);
         GLES20.glLineWidth(10);
+
+        Log.w(TAG, "个数:" + pointCount);
         for (int i = 0; i < pointCount / 2; i++) {
             int j = i * 2;
             GLES20.glDrawArrays(GLES20.GL_LINES, j, 2);
