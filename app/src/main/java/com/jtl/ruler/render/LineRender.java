@@ -4,7 +4,6 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
@@ -121,7 +120,6 @@ public class LineRender {
         ByteBuffer vertexBuffer = ByteBuffer.allocateDirect(positions.length * FLOAT_SIZE_BYTES);
         mVertexCoord = vertexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer();
         mVertexCoord.put(positions).position(0);
-        mVertexCoord.put(positions).position(0);
 
         float[] projectMatrix = new float[16];
         float[] viewMatrix = new float[16];
@@ -144,9 +142,8 @@ public class LineRender {
 
         GLES20.glEnableVertexAttribArray(a_Position);
         GLES20.glVertexAttribPointer(a_Position, 3, GLES20.GL_FLOAT, false, 0, mVertexCoord);
-        GLES20.glLineWidth(10);
+        GLES20.glLineWidth(5);
 
-        Log.w(TAG, "个数:" + pointCount);
         for (int i = 0; i < pointCount / 2; i++) {
             int j = i * 2;
             GLES20.glDrawArrays(GLES20.GL_LINES, j, 2);
@@ -154,5 +151,7 @@ public class LineRender {
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         GLES20.glUseProgram(0);
+
+        ShaderHelper.checkGLError("onDraw");
     }
 }

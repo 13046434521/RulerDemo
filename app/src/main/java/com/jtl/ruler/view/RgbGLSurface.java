@@ -24,6 +24,7 @@ import com.jtl.ruler.helper.SessionHelper;
 import com.jtl.ruler.helper.TabHelper;
 import com.jtl.ruler.render.LineRender;
 import com.jtl.ruler.render.PictureCircleRender;
+import com.jtl.ruler.render.PictureLengthRender;
 import com.jtl.ruler.render.PointRender;
 import com.jtl.ruler.render.RgbRender;
 
@@ -47,6 +48,8 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
     private PointRender mPointRender;
     private LineRender mLineRender;
     private PictureCircleRender mPictureCircleRender;
+    private PictureLengthRender mPictureLengthRender;
+
     private ReentrantLock mReentrantLock;
 
     private volatile Frame mFrame;
@@ -84,6 +87,9 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
         mPictureCircleRender = new PictureCircleRender();
         mPictureCircleRender.createdGLThread(getContext());
+
+        mPictureLengthRender = new PictureLengthRender();
+        mPictureLengthRender.createdGLThread(getContext());
 
         mPointRender = new PointRender();
         mPointRender.createdGLThread(getContext());
@@ -124,11 +130,14 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
                 if (mAnchorList.size() % 2 == 0) {
                     mLineRender.upData(mAnchorList, camera);
+                    mPictureLengthRender.upData(mAnchorList, camera);
                 } else {
                     mLineRender.upData(mAnchorList, anchor, camera);
+                    mPictureLengthRender.upData(mAnchorList, anchor, camera);
                 }
-//                mLineRender.upData(mAnchorList, camera);
                 mLineRender.onDraw();
+                mPictureLengthRender.onDraw();
+
                 Log.w(TAG, mAnchorList.size() + "个Anchor");
             }
             mReentrantLock.unlock();

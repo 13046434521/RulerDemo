@@ -128,5 +128,7 @@ public class PointRender {
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         GLES20.glUseProgram(0);
+
+        ShaderHelper.checkGLError("onDraw");
     }
 }

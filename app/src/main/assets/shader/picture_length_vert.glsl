@@ -1,7 +1,8 @@
 attribute  vec4 a_Position;
+attribute  vec2 a_TexCoord;
 uniform mat4 u_MvpMatrix;
-uniform float u_PointSize;
+varying vec2 v_TexCoord;
 void main() {
     gl_Position = u_MvpMatrix * a_Position;
-    gl_PointSize = u_PointSize;
+    v_TexCoord = a_TexCoord;
 }
