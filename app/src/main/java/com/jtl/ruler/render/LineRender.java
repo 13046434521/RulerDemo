@@ -18,19 +18,16 @@ import java.util.List;
  * @author：TianLong
  * @date：2020/1/2 14:18
  */
-public class RulerRender {
-    private static final String TAG = RulerRender.class.getSimpleName();
-    private static final String VERTEX_SHADER = "shader/ruler_vert.glsl";
-    private static final String FRAGMENT_SHADER = "shader/ruler_frag.glsl";
+public class LineRender {
+    private static final String TAG = LineRender.class.getSimpleName();
+    private static final String VERTEX_SHADER = "shader/line_vert.glsl";
+    private static final String FRAGMENT_SHADER = "shader/line_frag.glsl";
     private static final int FLOAT_SIZE_BYTES = 4;
     private int mProgram;
     private int[] textureId;
 
     private int a_Position;
-    private int u_TextureUnit;
-    private int a_TexCoord;
     private int u_Color;
-    private int u_PointSize;
     private int u_MvpMatrix;
 
     private float[] mvp_Matrix;
@@ -55,9 +52,6 @@ public class RulerRender {
         GLES20.glUseProgram(mProgram);
 
         a_Position = GLES20.glGetAttribLocation(mProgram, "a_Position");
-        a_TexCoord = GLES20.glGetAttribLocation(mProgram, "a_TexCoord");
-        u_TextureUnit = GLES20.glGetUniformLocation(mProgram, "u_TextureUnit");
-        u_PointSize = GLES20.glGetUniformLocation(mProgram, "u_PointSize");
         u_MvpMatrix = GLES20.glGetUniformLocation(mProgram, "u_MvpMatrix");
         u_Color = GLES20.glGetUniformLocation(mProgram, "u_Color");
         //解绑Shader
@@ -72,10 +66,10 @@ public class RulerRender {
 
     private void initData() {
         mvp_Matrix = new float[16];
-        point_Color = new float[]{1f,0f,0f,0f};
-        ByteBuffer vertexBuffer = ByteBuffer.allocateDirect(3 * 10 * FLOAT_SIZE_BYTES);
-        mVertexCoord = vertexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer();
-        mVertexCoord.position(0);
+        point_Color = new float[]{1f, 0f, 0f, 0f};
+//        ByteBuffer vertexBuffer = ByteBuffer.allocateDirect(3 * 10 * FLOAT_SIZE_BYTES);
+//        mVertexCoord = vertexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer();
+//        mVertexCoord.position(0);
     }
 
     private void initTexture() {
@@ -99,11 +93,13 @@ public class RulerRender {
         float[] positions = new float[3 * anchors.size()];
         pointCount = anchors.size();
         for (int i = 0; i < anchors.size(); i++) {
-            positions[i*3+0] = anchors.get(i).getPose().tx();
-            positions[i*3+1] = anchors.get(i).getPose().ty();
-            positions[i*3+2] = anchors.get(i).getPose().tz();
+            positions[i * 3 + 0] = anchors.get(i).getPose().tx();
+            positions[i * 3 + 1] = anchors.get(i).getPose().ty();
+            positions[i * 3 + 2] = anchors.get(i).getPose().tz();
         }
-
+        ByteBuffer vertexBuffer = ByteBuffer.allocateDirect(positions.length * FLOAT_SIZE_BYTES);
+        mVertexCoord = vertexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer();
+        mVertexCoord.put(positions).position(0);
         mVertexCoord.put(positions).position(0);
 
         float[] projectMatrix = new float[16];
@@ -121,22 +117,18 @@ public class RulerRender {
         GLES20.glUseProgram(mProgram);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId[0]);
 
-        GLES20.glUniform1i(u_TextureUnit, 0);
-        GLES20.glUniform1f(u_PointSize, 20);
-        GLES20.glUniform4fv(u_Color,1,point_Color,0);
+        GLES20.glUniform4fv(u_Color, 1, point_Color, 0);
         GLES20.glUniformMatrix4fv(u_MvpMatrix, 1, false, mvp_Matrix, 0);
 
         GLES20.glEnableVertexAttribArray(a_Position);
         GLES20.glVertexAttribPointer(a_Position, 3, GLES20.GL_FLOAT, false, 0, mVertexCoord);
+        GLES20.glLineWidth(10);
+        for (int i = 0; i < pointCount / 2; i++) {
+            int j = i * 2;
+            GLES20.glDrawArrays(GLES20.GL_LINES, j, 2);
+        }
 
-        GLES20.glDrawArrays(GLES20.GL_POINTS, 0, pointCount);
-
-        GLES20.glLineWidth(20);
-
-        GLES20.glDrawArrays(GLES20.GL_LINES,0,2);
-        GLES20.glDisableVertexAttribArray(a_Position);
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         GLES20.glUseProgram(0);
     }
 }

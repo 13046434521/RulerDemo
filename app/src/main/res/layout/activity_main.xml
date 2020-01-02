@@ -27,4 +27,15 @@
         android:src="@mipmap/ic_add_ruler"
         android:scaleType="center" />
 
+    <ImageView
+        android:id="@+id/iv_main_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="center"
+        android:src="@mipmap/ic_delete_ruler"
+        app:layout_constraintBottom_toBottomOf="@id/iv_main_hit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/iv_main_hit"
+        app:layout_constraintTop_toTopOf="@id/iv_main_hit" />
+
 </android.support.constraint.ConstraintLayout>

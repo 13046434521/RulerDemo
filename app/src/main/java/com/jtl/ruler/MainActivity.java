@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = MainActivity.class.getSimpleName();
     private RgbGLSurface mRgbGLSurface;
     private ImageView mHitImage;
+    private ImageView mDeleteImage;
     private SessionCode mSessionCode;
 
 
@@ -35,12 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initData();
     }
 
-    private void initView() {
-        mRgbGLSurface = findViewById(R.id.gl_main_rgb);
-        mHitImage = findViewById(R.id.iv_main_hit);
-
-        mHitImage.setOnClickListener(this::onClick);
-    }
+    private long time = 0;
 
     private void initData() {
         if (PermissionHelper.hasCameraPermission(this)) {
@@ -97,18 +93,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void initView() {
+        mRgbGLSurface = findViewById(R.id.gl_main_rgb);
+        mHitImage = findViewById(R.id.iv_main_hit);
+        mDeleteImage = findViewById(R.id.iv_main_delete);
+
+        mHitImage.setOnClickListener(this::onClick);
+        mDeleteImage.setOnClickListener(this::onClick);
+    }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.iv_main_hit:
                 //队列为Null的情况下，才加入数据。防止多次点击情况
-                if (TabHelper.getInstance().isEmpty()) {
+                if (TabHelper.getInstance().isEmpty() && longClick()) {
                     TabHelper.getInstance().offer(mMotionEvent);
+                }
+                break;
+            case R.id.iv_main_delete:
+                if (longClick()) {
+                    mRgbGLSurface.removeLastAnchorList();
                 }
                 break;
             default:
                 break;
         }
+    }
+
+    public boolean longClick() {
+        if (System.currentTimeMillis() - time > 1000) {
+            time = System.currentTimeMillis();
+            return true;
+        }
+
+        return false;
     }
 }

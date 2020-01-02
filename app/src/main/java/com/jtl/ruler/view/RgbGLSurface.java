@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
@@ -20,12 +21,14 @@ import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.jtl.ruler.helper.DisplayRotationHelper;
 import com.jtl.ruler.helper.SessionHelper;
 import com.jtl.ruler.helper.TabHelper;
+import com.jtl.ruler.render.LineRender;
 import com.jtl.ruler.render.PictureCircleRender;
+import com.jtl.ruler.render.PointRender;
 import com.jtl.ruler.render.RgbRender;
-import com.jtl.ruler.render.RulerRender;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -40,9 +43,10 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
     private DisplayRotationHelper mDisplayRotationHelper;
     private RgbRender mRgbRender;
-    private RulerRender mRulerRender;
+    private PointRender mPointRender;
+    private LineRender mLineRender;
     private PictureCircleRender mPictureCircleRender;
-
+    private ReentrantLock mReentrantLock;
 
     private volatile Frame mFrame;
     private volatile List<Anchor> mAnchorList;
@@ -65,6 +69,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
         mAnchorList = new ArrayList<>(16);
         mDisplayRotationHelper = new DisplayRotationHelper(getContext());
+        mReentrantLock = new ReentrantLock();
     }
 
     @Override
@@ -77,8 +82,11 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         mPictureCircleRender = new PictureCircleRender();
         mPictureCircleRender.createdGLThread(getContext());
 
-        mRulerRender = new RulerRender();
-        mRulerRender.createdGLThread(getContext());
+        mPointRender = new PointRender();
+        mPointRender.createdGLThread(getContext());
+
+        mLineRender = new LineRender();
+        mLineRender.createdGLThread(getContext());
     }
 
     @Override
@@ -87,7 +95,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         mDisplayRotationHelper.onSurfaceChanged(width, height);
     }
 
-    private Anchor anchor;
+
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
@@ -104,20 +112,23 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
             mRgbRender.onDraw(mFrame);
 
             Camera camera = mFrame.getCamera();
-            Anchor anchor = hitTest(mFrame, camera);
 
-            if (!mAnchorList.isEmpty()){
-                mRulerRender.upData(mAnchorList,camera);
-                mRulerRender.onDraw();
-                Log.w(TAG,mAnchorList.size()+"个Anchor");
+            mReentrantLock.lock();
+            Anchor anchor = hitTest(mFrame, camera);
+            if (!mAnchorList.isEmpty()) {
+                mPointRender.upData(mAnchorList, camera);
+                mPointRender.onDraw();
+
+                mLineRender.upData(mAnchorList, camera);
+                mLineRender.onDraw();
+                Log.w(TAG, mAnchorList.size() + "个Anchor");
             }
+            mReentrantLock.unlock();
 
             if (anchor != null) {
                 mPictureCircleRender.upData(anchor, camera);
                 mPictureCircleRender.onDraw();
             }
-
-
         } catch (CameraNotAvailableException e) {
             e.printStackTrace();
         }
@@ -158,7 +169,9 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
                     anchor = hit.createAnchor();
 
                     if (motionClick != null) {
-                        if (mAnchorList.size() >= 20) {
+                        if (mAnchorList.size() >= 10) {
+                            mAnchorList.get(0).detach();
+                            mAnchorList.remove(0);
                             mAnchorList.get(0).detach();
                             mAnchorList.remove(0);
                         }
@@ -169,5 +182,41 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         }
 
         return anchor;
+    }
+
+    public void removeAnchorList(int index) {
+        mReentrantLock.lock();
+        try {
+            if (mAnchorList.size() != 0 && index > 0 && index < mAnchorList.size()) {
+                mAnchorList.remove(index);
+            } else {
+                this.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getContext(), "Anchors个数为：" + mAnchorList.size(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        } finally {
+            mReentrantLock.unlock();
+        }
+    }
+
+    public void removeLastAnchorList() {
+        mReentrantLock.lock();
+        try {
+            if (mAnchorList.size() > 0) {
+                mAnchorList.remove(mAnchorList.size() - 1);
+            } else {
+                this.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getContext(), "Anchors个数为：" + mAnchorList.size(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        } finally {
+            mReentrantLock.unlock();
+        }
     }
 }

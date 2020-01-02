@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TabHelper {
     private LinkedBlockingQueue<MotionEvent> mLinkedBlockingQueue;
     private MotionEvent mMotionEvent;
+
     private TabHelper() {
         mLinkedBlockingQueue = new LinkedBlockingQueue<>(16);
     }
