@@ -53,7 +53,7 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
     private ReentrantLock mReentrantLock;
 
     private volatile Frame mFrame;
-    private volatile List<Anchor> mAnchorList;
+    private List<Anchor> mAnchorList;
     private Vibrator vibrator;
 
     public RgbGLSurface(Context context) {
@@ -124,6 +124,10 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
 
             mReentrantLock.lock();
             Anchor anchor = hitTest(mFrame, camera);
+            if (anchor != null) {
+                mPictureCircleRender.upData(anchor, camera);
+                mPictureCircleRender.onDraw();
+            }
             if (!mAnchorList.isEmpty()) {
                 mPointRender.upData(mAnchorList, camera);
                 mPointRender.onDraw();
@@ -142,10 +146,6 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
             }
             mReentrantLock.unlock();
 
-            if (anchor != null) {
-                mPictureCircleRender.upData(anchor, camera);
-                mPictureCircleRender.onDraw();
-            }
         } catch (CameraNotAvailableException e) {
             e.printStackTrace();
         }
@@ -193,7 +193,9 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
                             mAnchorList.remove(0);
                         }
                         mAnchorList.add(anchor);
+                        //添加震动
                         vibrator.vibrate(50);
+                        break;
                     }
                 }
             }
@@ -206,7 +208,9 @@ public class RgbGLSurface extends GLSurfaceView implements GLSurfaceView.Rendere
         mReentrantLock.lock();
         try {
             if (mAnchorList.size() != 0 && index >= 0 && index < mAnchorList.size()) {
+                mAnchorList.get(index).detach();
                 mAnchorList.remove(index);
+                //添加震动
                 vibrator.vibrate(50);
             } else {
                 this.post(new Runnable() {

@@ -118,9 +118,6 @@ public class PictureLengthRender {
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
 
-        //这句话是数据拷贝，从CPU拷贝纸GPU显存中，耗时1-11毫秒不等。
-        // 因此渲染一张固定图片时不建议把它放在onDrawFrame当中。除非数据一直在变
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mBitmapWidth, mBitmapHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mBitmapBuffer);
         ShaderHelper.checkGLError("initTexture");
     }
 
@@ -143,7 +140,7 @@ public class PictureLengthRender {
         } else {
             positions = new float[3 * anchors.size()];
             for (int i = 0; i < anchors.size(); i++) {
-                positions[i * 3 + 0] = anchors.get(i).getPose().tx();
+                positions[i * 3] = anchors.get(i).getPose().tx();
                 positions[i * 3 + 1] = anchors.get(i).getPose().ty();
                 positions[i * 3 + 2] = anchors.get(i).getPose().tz();
             }
@@ -160,47 +157,59 @@ public class PictureLengthRender {
             centerPosition[i * 3 + 2] = (positions[i * 2 * 3 + 2] + positions[i * 2 * 3 + 5]) / 2;
 
             //第一个点
-            vertexCoord[i * 3 * 4] = centerPosition[i * 3] - 0.3f;
+            vertexCoord[i * 3 * 4] = centerPosition[i * 3] - 0.03f;
             vertexCoord[i * 3 * 4 + 1] = centerPosition[i * 3 + 1];
-            vertexCoord[i * 3 * 4 + 2] = centerPosition[i * 3 + 2] + 0.2f;
+            vertexCoord[i * 3 * 4 + 2] = centerPosition[i * 3 + 2] + 0.02f;
 
             //第二个点
-            vertexCoord[i * 3 * 4 + 3] = centerPosition[i * 3] - 0.3f;
+            vertexCoord[i * 3 * 4 + 3] = centerPosition[i * 3] - 0.03f;
             vertexCoord[i * 3 * 4 + 4] = centerPosition[i * 3 + 1];
-            vertexCoord[i * 3 * 4 + 5] = centerPosition[i * 3 + 2] - 0.2f;
+            vertexCoord[i * 3 * 4 + 5] = centerPosition[i * 3 + 2] - 0.02f;
 
             //第三个点
-            vertexCoord[i * 3 * 4 + 6] = centerPosition[i * 3] + 0.3f;
+            vertexCoord[i * 3 * 4 + 6] = centerPosition[i * 3] + 0.03f;
             vertexCoord[i * 3 * 4 + 7] = centerPosition[i * 3 + 1];
-            vertexCoord[i * 3 * 4 + 8] = centerPosition[i * 3 + 2] + 0.2f;
+            vertexCoord[i * 3 * 4 + 8] = centerPosition[i * 3 + 2] + 0.02f;
 
             //第四个点
-            vertexCoord[i * 3 * 4 + 9] = centerPosition[i * 3] + 0.3f;
+            vertexCoord[i * 3 * 4 + 9] = centerPosition[i * 3] + 0.03f;
             vertexCoord[i * 3 * 4 + 10] = centerPosition[i * 3 + 1];
-            vertexCoord[i * 3 * 4 + 11] = centerPosition[i * 3 + 2] - 0.2f;
+            vertexCoord[i * 3 * 4 + 11] = centerPosition[i * 3 + 2] - 0.02f;
         }
 
         ByteBuffer vertexBuffer = ByteBuffer.allocateDirect(vertexCoord.length * FLOAT_SIZE_BYTES);
         mVertexCoord = vertexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer();
         mVertexCoord.put(vertexCoord).position(0);
 
-        float[] model = new float[16];
         float[] projectMatrix = new float[16];
         float[] viewMatrix = new float[16];
 
         Matrix.setIdentityM(mvp_Matrix, 0);
-        if (anchor != null) {
-            anchor.getPose().toMatrix(model, 0);
-        } else {
-            anchors.get(anchors.size() - 1).getPose().toMatrix(model, 0);
-        }
         camera.getViewMatrix(viewMatrix, 0);
         camera.getProjectionMatrix(projectMatrix, 0, 0.1f, 100f);
 
         //MVP矩阵   乘法顺序为：P * V * M
-        Matrix.multiplyMM(mvp_Matrix, 0, viewMatrix, 0, model, 0);
-        Matrix.multiplyMM(mvp_Matrix, 0, projectMatrix, 0, mvp_Matrix, 0);
+        Matrix.multiplyMM(mvp_Matrix, 0, projectMatrix, 0, viewMatrix, 0);
+    }
 
+    public void upData(float[] point1, float[] point2, Camera camera) {
+        float[] pointA = new float[4];
+        float[] pointB = new float[4];
+        pointA[0] = point1[0];
+        pointA[1] = point1[1];
+        pointA[2] = point1[2];
+        pointA[3] = 1;
+
+        pointB[0] = point2[0];
+        pointB[1] = point2[1];
+        pointB[2] = point2[2];
+        pointB[3] = 1;
+
+        //获取View矩阵和Project矩阵
+        float[] viewMatrix = new float[16];
+        float[] projectMatrix = new float[16];
+        camera.getViewMatrix(viewMatrix, 0);
+        camera.getProjectionMatrix(projectMatrix, 0, 0.1f, 100f);
     }
 
     public void onDraw() {
@@ -220,8 +229,17 @@ public class PictureLengthRender {
         ShaderHelper.checkGLError("onDraw");
         for (int i = 0; i < pointCount; i++) {
             int j = i * 4;
+            //这句话是数据拷贝，从CPU拷贝纸GPU显存中，耗时1-11毫秒不等。
+            // 因此渲染一张固定图片时不建议把它放在onDrawFrame当中。除非数据一直在变
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mBitmapWidth, mBitmapHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mBitmapBuffer);
+            //渲染数据, GLES20.glDrawArrays(渲染模式，第一个顶点，一共几个顶点)
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, j, 4);
         }
+        //这句话是数据拷贝，从CPU拷贝纸GPU显存中，耗时1-11毫秒不等。
+        // 因此渲染一张固定图片时不建议把它放在onDrawFrame当中。除非数据一直在变
+//        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mBitmapWidth, mBitmapHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mBitmapBuffer);
+        //渲染数据, GLES20.glDrawArrays(渲染模式，第一个顶点，一共几个顶点)
+//        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
 //        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 

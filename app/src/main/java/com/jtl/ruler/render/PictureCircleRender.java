@@ -25,7 +25,7 @@ public class PictureCircleRender {
     private static final String FRAGMENT_SHADER = "shader/picture_circle_frag.glsl";
     private static final String VERTEX_SHADER = "shader/picture_circle_vert.glsl";
     private static final String PATH = "pointCircle.png";
-    //    private static final String PATH = "picture.jpeg";
+    //    private static final String PATH = "picture.png";
     private static final int FLOAT_SIZE_BYTES = 4;
 
     private int a_Position;
