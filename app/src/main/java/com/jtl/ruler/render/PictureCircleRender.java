@@ -170,7 +170,7 @@ public class PictureCircleRender {
         //开启混色
         GLES20.glEnable(GLES20.GL_BLEND);
         //混色方式设置
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE);
 
         //public static void glVertexAttribPointer(插槽位置,有几个分量（x,y,z,w）,数据类型,是否归一化,0,数据)
         //告诉GPU如何遍历VBO的内存块

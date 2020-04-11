@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.jtl.ruler.helper.BitmapHelper;
 import com.jtl.ruler.helper.PermissionHelper;
 import com.jtl.ruler.helper.ScreenHelper;
 import com.jtl.ruler.helper.SessionHelper;
@@ -100,6 +101,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mHitImage.setOnClickListener(this::onClick);
         mDeleteImage.setOnClickListener(this::onClick);
+
+        mHitImage.setImageBitmap(BitmapHelper.getInstance().drawBitmap("测试123456"));
     }
 
     @Override

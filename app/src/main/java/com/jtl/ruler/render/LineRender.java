@@ -68,9 +68,6 @@ public class LineRender {
     private void initData() {
         mvp_Matrix = new float[16];
         point_Color = new float[]{1f, 0f, 0f, 0f};
-//        ByteBuffer vertexBuffer = ByteBuffer.allocateDirect(3 * 10 * FLOAT_SIZE_BYTES);
-//        mVertexCoord = vertexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer();
-//        mVertexCoord.position(0);
     }
 
     private void initTexture() {
