@@ -26,8 +26,8 @@ import java.util.List;
  * @author：TianLong
  * @date：2020/1/2 14:18
  */
-public class PictureLengthRender {
-    private static final String TAG = PictureLengthRender.class.getSimpleName();
+public class PictureLengthRender3 {
+    private static final String TAG = PictureLengthRender3.class.getSimpleName();
     private static final String VERTEX_SHADER = "shader/picture_length_vert.glsl";
     private static final String FRAGMENT_SHADER = "shader/picture_length_frag.glsl";
     private static final String PATH = "picture.png";
@@ -151,23 +151,13 @@ public class PictureLengthRender {
                 positions[2] = anchors.get(i).getPose().tz();
             }
         }
-        float[] projectMatrix = new float[16];
-        float[] viewMatrix = new float[16];
-
-        Matrix.setIdentityM(mvp_Matrix, 0);
-        camera.getViewMatrix(viewMatrix, 0);
-        camera.getProjectionMatrix(projectMatrix, 0, 0.1f, 100f);
 
         //每个点3个分量，每两个点算出一个中心点
         pointCount = positions.length / 6;
         //纹理由4个点构成，每个点分为x,y,z 三个坐标
         for (int i = 0; i < pointCount; i++) {
-            Point point1 = new Point(positions[i * 2 * 3], positions[i * 2 * 3 + 1], positions[i * 2 * 3 + 2]);
-            Point point2 = new Point(positions[i * 2 * 3 + 3], positions[i * 2 * 3 + 4], positions[i * 2 * 3 + 5]);
-
-            Matrix.multiplyMV(point1.ele, 0, viewMatrix, 0, point1.ele, 0);
-            Matrix.multiplyMV(point2.ele, 0, viewMatrix, 0, point2.ele, 0);
-
+            float[] point1 = new float[]{positions[i * 2 * 3], positions[i * 2 * 3 + 1], positions[i * 2 * 3 + 2]};
+            float[] point2 = new float[]{positions[i * 2 * 3 + 3], positions[i * 2 * 3 + 4], positions[i * 2 * 3 + 5]};
             PointPicture pointPicture = new PointPicture(point1, point2);
             if (i < mPointPictures.size()) {
                 mPointPictures.get(i).put(pointPicture);
@@ -175,6 +165,13 @@ public class PictureLengthRender {
                 mPointPictures.add(pointPicture);
             }
         }
+
+        float[] projectMatrix = new float[16];
+        float[] viewMatrix = new float[16];
+
+        Matrix.setIdentityM(mvp_Matrix, 0);
+        camera.getViewMatrix(viewMatrix, 0);
+        camera.getProjectionMatrix(projectMatrix, 0, 0.1f, 100f);
 
         //MVP矩阵   乘法顺序为：P * V * M
         Matrix.multiplyMM(mvp_Matrix, 0, projectMatrix, 0, viewMatrix, 0);
@@ -225,76 +222,60 @@ public class PictureLengthRender {
      * @param point2
      * @return
      */
-    private String calLineLength(Point point1,Point point2) {
-        float x = point1.x - point2.x;
-        float y = point1.y - point2.y;
-        float z = point1.z - point2.z;
+    private String calLineLength(float[] point1, float[] point2) {
+        float x = point1[0] - point2[0];
+        float y = point1[1] - point2[1];
+        float z = point1[2] - point2[2];
         DecimalFormat df = new DecimalFormat("0.0");
         float length = (float) Math.sqrt(x * x + y * y + z * z);
         Log.w("好奇的结果", length + "");
         return df.format(length);
     }
 
-    private class Point{
-        private float x;
-        private float y;
-        private float z;
-        private float w ;
-        private float[] ele;
-
-        public Point(float x, float y, float z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.w = 1;
-            ele = new float[]{x,y,z,w};
-        }
-    }
-
-
     private class PointPicture {
-        private Point point1;
-        private Point point2;
-        private Point centerPoint;
-
+        private float[] point1;
+        private float[] point2;
         private String length;
         private Bitmap mBitmap;
+        private float[] centerPosition = new float[3];
         private float[] vertexCoord = new float[12];
 
-        public PointPicture(Point point1,Point point2) {
+        public PointPicture(float[] point1, float[] point2) {
             this.point1 = point1;
             this.point2 = point2;
 
-            centerPoint = new Point((point1.x + point2.x) / 2,(point1.y + point2.y) / 2,(point1.z + point2.z) / 2);
+            this.centerPosition[0] = (point1[0] + point2[0]) / 2;//x
+            this.centerPosition[1] = (point1[1] + point2[1]) / 2;//y
+            this.centerPosition[2] = (point1[2] + point2[2]) / 2;//z
 
             this.length = calLineLength(point1, point2);
 
             this.mBitmap = BitmapHelper.getInstance().drawBitmap(length);
 
             //第一个点
-            vertexCoord[0] = centerPoint.x + 0.03f;
-            vertexCoord[1] = centerPoint.y;
-            vertexCoord[2] = centerPoint.z + 0.02f;
+            vertexCoord[0] = centerPosition[0] + 0.03f;
+            vertexCoord[1] = centerPosition[1];
+            vertexCoord[2] = centerPosition[2] + 0.02f;
 
             //第二个点
-            vertexCoord[3] = centerPoint.x + 0.03f;
-            vertexCoord[4] = centerPoint.y;
-            vertexCoord[5] = centerPoint.z - 0.02f;
+            vertexCoord[3] = centerPosition[0] + 0.03f;
+            vertexCoord[4] = centerPosition[1];
+            vertexCoord[5] = centerPosition[2] - 0.02f;
 
             //第三个点
-            vertexCoord[6] = centerPoint.x - 0.03f;
-            vertexCoord[7] = centerPoint.y;
-            vertexCoord[8] = centerPoint.z + 0.02f;
+            vertexCoord[6] = centerPosition[0] - 0.03f;
+            vertexCoord[7] = centerPosition[1];
+            vertexCoord[8] = centerPosition[2] + 0.02f;
 
             //第四个点
-            vertexCoord[9] = centerPoint.x - 0.03f;
-            vertexCoord[10] = centerPoint.y;
-            vertexCoord[11] = centerPoint.z - 0.02f;
+            vertexCoord[9] = centerPosition[0] - 0.03f;
+            vertexCoord[10] = centerPosition[1];
+            vertexCoord[11] = centerPosition[2] - 0.02f;
         }
 
         public void put(PointPicture pointPicture) {
             this.mBitmap = pointPicture.mBitmap;
-            this.centerPoint = pointPicture.centerPoint;
+            this.centerPosition = pointPicture.centerPosition;
             this.point1 = pointPicture.point1;
             this.point2 = pointPicture.point2;
             this.length = pointPicture.length;

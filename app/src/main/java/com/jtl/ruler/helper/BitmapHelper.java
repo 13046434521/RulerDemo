@@ -15,9 +15,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class BitmapHelper {
     private Canvas mCanvas;
     private Paint mPaint;
-    private int width = 100;
-    private int height = 100;
-    private int margin = 30;
+    private int width = 150;
+    private int height = 80;
+    private int margin = 20;
+    private int rectRound = 30;
     private ConcurrentLinkedQueue<Bitmap> mBitmapsQueue = new ConcurrentLinkedQueue<>();
 
     private BitmapHelper() {
@@ -26,7 +27,7 @@ public class BitmapHelper {
         mPaint.setAntiAlias(true);
         mPaint.setTextSize(30);
         mPaint.setColor(Color.BLACK);
-        mPaint.setStrokeWidth(10);
+        mPaint.setStrokeWidth(20);
         mPaint.setTextAlign(Paint.Align.CENTER);
     }
 
@@ -43,7 +44,7 @@ public class BitmapHelper {
         mCanvas.setBitmap(contentBitmap);
         RectF rectF = new RectF(0, 0, contentBitmap.getWidth(), contentBitmap.getHeight() );
         mPaint.setColor(Color.WHITE);
-        mCanvas.drawRoundRect(rectF, 30, 30, mPaint);
+        mCanvas.drawRoundRect(rectF, rectRound, rectRound, mPaint);
 
         mPaint.setColor(Color.BLACK);
         mCanvas.drawText(msg, rectF.width() / 2, rectF.height() / 2, mPaint);
@@ -56,7 +57,7 @@ public class BitmapHelper {
         String content = msg + "cm";
         int length = content.length();
         int width = length * 30 + margin;
-        int height = (int) (mPaint.getTextSize() + margin);
+        int height = (int) (mPaint.getTextSize() + margin/2);
         width = Math.max(width,this.width);
         height = Math.max(height,this.height);
 
